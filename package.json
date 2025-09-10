@@ -1,0 +1,21 @@
+{
+  "name": "font-inspector",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "bin": {
+    "font-inspector": "./index.js"
+  },
+  "scripts": {
+    "start": "node ./index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "keywords": [],
+  "author": "Carlos Araya <carlos.araya@gmail.com> (https://publishing-project.rivendellweb.net/)",
+  "license": "MIT",
+  "devDependencies": {
+    "opentype.js": "^1.3.4",
+    "wawoff2": "^2.0.1"
+  }
+}
