@@ -139,3 +139,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .vite/
+Recursive_VF_1.085.woff2
+Recursive_VF_1.085--subset-GF_latin_basic.woff2
+fonts.css

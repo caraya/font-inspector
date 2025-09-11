@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 
-// Import native node modules
-import fs from 'node:fs';
-import path from 'node:path';
-// Import third-party modules
+// Import necessary modules from Node.js and external packages
 import opentype from 'opentype.js';
+import fs from 'fs';
+import path from 'path';
 import { decompress } from 'wawoff2';
 
 /**
@@ -71,6 +70,7 @@ async function processFontFile(fontPath) {
       
       let fontWeight;
       let fontStyle;
+      let fontVariationSettings = '';
 
       if (isVariable) {
         // For variable fonts, define ranges for weight and style if the axes exist.
@@ -80,27 +80,40 @@ async function processFontFile(fontPath) {
         const slantAxis = font.tables.fvar.axes.find(axis => axis.tag === 'slnt');
         fontStyle = slantAxis ? `oblique ${slantAxis.minValue}deg ${slantAxis.maxValue}deg` : ((font.tables.os2.fsSelection & 1) ? 'italic' : 'normal');
 
+        // Populate the font-variation-settings descriptor
+        fontVariationSettings = font.tables.fvar.axes
+          .map(axis => `'${axis.tag}' ${axis.defaultValue}`)
+          .join(', ');
+
       } else {
         // For static fonts, use single values.
         fontWeight = font.tables.os2.usWeightClass;
         fontStyle = (font.tables.os2.fsSelection & 1) ? 'italic' : 'normal';
       }
 
-      const ascentOverride = (font.ascender / font.unitsPerEm * 100).toFixed(2);
-      const descentOverride = (Math.abs(font.descender) / font.unitsPerEm * 100).toFixed(2);
-      const lineGapOverride = (font.tables.hhea.lineGap / font.unitsPerEm * 100).toFixed(2);
+      const ascentOverride = (font.ascender / font.unitsPerEm * 100).toFixed(4);
+      const descentOverride = (Math.abs(font.descender) / font.unitsPerEm * 100).toFixed(4);
+      const lineGapOverride = (font.tables.hhea.lineGap / font.unitsPerEm * 100).toFixed(4);
 
-      return `
-@font-face {
-  font-family: '${fontFamily}';
-  src: url('${fontPath}');
-  font-weight: ${fontWeight};
-  font-style: ${fontStyle};
-  font-display: swap;
-  ascent-override: ${ascentOverride}%;
-  descent-override: ${descentOverride}%;
-  line-gap-override: ${lineGapOverride}%;
-}`.trim();
+      // Build an array of CSS properties to ensure clean formatting.
+      const cssProperties = [
+        `  font-family: '${fontFamily}'`,
+        `  src: url('${fontPath}')`,
+        `  font-weight: ${fontWeight}`,
+        `  font-style: ${fontStyle}`,
+        `  font-display: swap`,
+      ];
+      
+      if (fontVariationSettings) {
+        cssProperties.push(`  font-variation-settings: ${fontVariationSettings}`);
+      }
+
+      cssProperties.push(`  ascent-override: ${ascentOverride}%`);
+      cssProperties.push(`  descent-override: ${descentOverride}%`);
+      cssProperties.push(`  line-gap-override: ${lineGapOverride}%`);
+
+      // Join the properties into the final @font-face rule string.
+      return `@font-face {\n${cssProperties.join(';\n')};\n}`;
     }
     return null; // Return null if required tables are missing.
 
